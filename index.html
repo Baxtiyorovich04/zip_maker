@@ -4,20 +4,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./main.scss">
-    <title>Zip maker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./main.css">
+    <title>Zip Maker</title>
 </head>
 
 <body>
-    <div class="zip_layout">
-        <h1>Zip papkaga nom bering!</h1>
-        <input type="text" id="zipName" placeholder="Falonchi sinf">
-    </div>
-    <div class="zip_pictures">
-        <h1>Suratlarni yuklang</h1>
-        <input type="text" multiple accept="image/*" id="imageInput">
-    </div>
+    <main class="zip-app container">
+        <header>
+            <h1>📁 Zip papka yaratuvchi</h1>
+            <p>Bu sayt orqali rasmlarni zip papkaga solsangiz boladi</p>
+        </header>
 
+        <section class="zip-name-section">
+            <h2>1. Papkangizga nom bering</h2>
+            <div class="input-group">
+                <input type="text" id="zipName" placeholder="misol uchun 10v Kelajak soati" required>
+            </div>
+        </section>
+
+        <section class="zip-pictures-section">
+            <h2>2. Rasmlarni yuklang</h2>
+            <div class="input-group file-upload-group">
+                <label for="imageInput" class="file-label">
+                    <span>🖼️ Rasmlarni tanglang</span>
+                </label>
+                <input type="file" multiple accept="image/*" id="imageInput" style="display: none;">
+                <p id="file-status">Rasmlar tanlanmadi</p>
+            </div>
+        </section>
+
+        <section class="zip-download-section">
+            <button class="download-btn" id="download_zip">
+                ⬇️ Zip papkani yuklab oling
+            </button>
+            <p id="status"></p>
+        </section>
+
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        const button = document.getElementById("download-btn")
+        const status = document.getElementById("status")
+    </script>
 </body>
 
 </html>
