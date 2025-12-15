@@ -29,8 +29,10 @@
                 <label for="imageInput" class="file-label">
                     <span>🖼️ Rasmlarni tanglang</span>
                 </label>
-                <input type="file" multiple accept="image/*" id="imageInput" style="display: none;">
-                <p id="file-status">Rasmlar tanlanmadi</p>
+                <input type="file" multiple accept="image/*" id="imageInput" style="display: none;" />
+
+                <p id="file-status" class="muted hidden"></p>
+                <ul id="file-list" class="file-list"></ul>
             </div>
         </section>
 
@@ -38,16 +40,122 @@
             <button class="download-btn" id="download_zip">
                 ⬇️ Zip papkani yuklab oling
             </button>
-            <p id="status"></p>
+            <div id="status" class="status-card" aria-live="polite"></div>
         </section>
 
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
-        const button = document.getElementById("download-btn")
-        const status = document.getElementById("status")
+        const button = document.getElementById("download_zip");
+        const status = document.getElementById("status");
+        const imageInput = document.getElementById("imageInput");
+        const fileStatus = document.getElementById("file-status");
+        const fileList = document.getElementById("file-list");
+        const zipNameInput = document.getElementById("zipName");
+        let selectedFiles = [];
+
+        const setStatus = (message, type = "") => {
+            status.textContent = message;
+            status.className = `status-card ${type}`.trim();
+        };
+
+        const renderFileList = (files) => {
+            fileList.innerHTML = "";
+
+            if (files.length === 0) {
+                fileStatus.textContent = "";
+                fileStatus.classList.add("hidden");
+                return;
+            }
+
+            fileStatus.classList.remove("muted");
+            fileStatus.classList.remove("hidden");
+            fileStatus.textContent = files.length === 1
+                ? "1 ta rasm tanlandi"
+                : `${files.length} ta rasm tanlandi`;
+
+            const maxPreview = 5;
+            Array.from(files)
+                .slice(0, maxPreview)
+                .forEach((file) => {
+                    const item = document.createElement("li");
+                    item.textContent = file.name;
+                    fileList.appendChild(item);
+                });
+
+            if (files.length > maxPreview) {
+                const more = document.createElement("li");
+                more.textContent = `... yana ${files.length - maxPreview} ta`;
+                fileList.appendChild(more);
+            }
+        };
+
+        imageInput.addEventListener("change", (event) => {
+            const newFiles = Array.from(event.target.files);
+
+            if (newFiles.length === 0) {
+                return;
+            }
+
+            const combined = [...selectedFiles, ...newFiles];
+
+            if (combined.length > 10) {
+                setStatus("Maksimum 10 ta rasm tanlang", "error");
+                imageInput.value = "";
+                return;
+            }
+
+            selectedFiles = combined;
+            renderFileList(selectedFiles);
+            setStatus("");
+            imageInput.value = "";
+        });
+
+        button.addEventListener("click", async () => {
+            const files = selectedFiles;
+            const zipName = zipNameInput.value.trim();
+
+            if (!zipName) {
+                setStatus("Iltimos papka nomini kiriting", "error");
+                return;
+            }
+
+            if (files.length === 0) {
+                setStatus("Iltimos kamida bitta rasmni tanlang", "error");
+                return;
+            }
+
+            if (files.length > 10) {
+                setStatus("Maksimum 10 ta rasm tanlang", "error");
+                return;
+            }
+
+            try {
+                button.disabled = true;
+                setStatus("Zip papka yaratilmoqda...", "info");
+
+                const zip = new JSZip();
+                for (const file of files) {
+                    zip.file(file.name, file);
+                }
+
+                const blob = await zip.generateAsync({ type: "blob" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = zipName + ".zip";
+                link.click();
+
+                setStatus("Zip papka yuklanishi boshlandi. Yordamim tekgan bo'lsa 10 ball kutaman)", "success");
+            } catch (error) {
+                console.error(error);
+                setStatus("Xatolik yuz berdi, qayta urinib ko'ring", "error");
+            } finally {
+                button.disabled = false;
+            }
+        });
     </script>
+
 </body>
 
 </html>

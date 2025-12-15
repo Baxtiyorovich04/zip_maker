@@ -133,6 +133,31 @@ input[type="text"]:focus {
     padding: 5px 0;
 }
 
+.hidden {
+    display: none;
+}
+
+.muted {
+    color: #95a5a6;
+}
+
+.file-list {
+    list-style: none;
+    width: 100%;
+    border: 1px dashed #dfe4ea;
+    border-radius: var(--border-radius);
+    padding: 10px 12px;
+    background-color: #fafbfc;
+    color: #2c3e50;
+    display: grid;
+    gap: 6px;
+}
+
+.file-list li {
+    font-size: 0.95em;
+    word-break: break-word;
+}
+
 
 .download-btn {
     width: 100%;
@@ -158,6 +183,41 @@ input[type="text"]:focus {
 .download-btn:active {
     transform: translateY(3px);
     box-shadow: 0 2px var(--primary-dark);
+}
+
+.download-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 3px var(--primary-dark);
+}
+
+.status-card {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: var(--border-radius);
+    background: #eef2f7;
+    color: #2c3e50;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.status-card.info {
+    background: #e8f0fe;
+    color: #1a73e8;
+}
+
+.status-card.error {
+    background: #fdecea;
+    color: #e53935;
+}
+
+.status-card.success {
+    background: #e6f4ea;
+    color: #2e7d32;
 }
 
 
