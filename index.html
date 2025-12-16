@@ -141,29 +141,12 @@
                 }
 
                 const blob = await zip.generateAsync({ type: "blob" });
-                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const ua = navigator.userAgent || "";
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
+                const isTelegram = /Telegram/i.test(ua);
 
-                if (isMobile) {
-                    // Try to share directly from the browser (Telegram will appear in the system share sheet if installed)
-                    const zipFile = new File([blob], `${zipName}.zip`, { type: "application/zip" });
-
-                    if (navigator.canShare && navigator.canShare({ files: [zipFile] })) {
-                        try {
-                            await navigator.share({
-                                files: [zipFile],
-                                title: zipName,
-                                text: "Zip faylini ulashyapsiz"
-                            });
-                            setStatus("Zip tayyor. Telegram yoki boshqa ilovaga ulash muvaffaqiyatli boshlandi. Yordamim tekgan bo'lsa 10 ball kutaman)", "success");
-                        } catch (shareError) {
-                            // NotAllowedError ko'p hollarda foydalanuvchi ulash oynasini yopgani yoki bekor qilganini anglatadi.
-                            console.warn("Share cancelled by user or not allowed", shareError);
-                            setStatus("Zip tayyor. Ulash oynasi yopildi yoki bekor qilindi, xohlasangiz yana 'Zip papkani yuklab oling' tugmasini bosing.", "info");
-                        }
-                    } else {
-                        setStatus("Zip fayl tayyor, lekin brauzeringiz faylni to'g'ridan-to'g'ri ulashni qo'llab-quvvatlamaydi. Iltimos kompyuterdan yuklab olib, Telegramga yuboring.", "error");
-                    }
-                } else {
+                // Helper: force a real download
+                const forceDownload = () => {
                     const blobUrl = URL.createObjectURL(blob);
                     const link = document.createElement("a");
                     link.href = blobUrl;
@@ -171,11 +154,35 @@
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-
-                    setStatus("Zip papka yuklanishi boshlandi. Telefon/kompyuteringizda yuklangan fayl odatda 'Downloads' / 'Yuklamalar' papkasiga saqlanadi. Yordamim tekgan bo'lsa 10 ball kutaman)", "success");
-
                     setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+                };
+
+                if (isMobile && !isTelegram) {
+                    // Mobile browser (not Telegram in-app) – try share sheet with actual file
+                    const zipFile = new File([blob], `${zipName}.zip`, { type: "application/zip" });
+
+                    if (navigator.canShare && navigator.canShare({ files: [zipFile] })) {
+                        try {
+                            await navigator.share({
+                                files: [zipFile],
+                                title: zipName
+                            });
+                            setStatus("Zip tayyor. Telegram yoki boshqa ilovaga ulash muvaffaqiyatli boshlandi. Yordamim tekgan bo'lsa 10 ball kutaman)", "success");
+                            return;
+                        } catch (shareError) {
+                            // User closed or share not allowed – fall back to download so file is not lost
+                            console.warn("Share cancelled or failed, falling back to download", shareError);
+                        }
+                    }
+                    // If can't share files, fall back to download
+                    forceDownload();
+                    setStatus("Zip papka yuklanishi boshlandi. Agar yuklash oynasi ko'rinmasa, qurilmangizning yuklab olishlar papkasini tekshiring.", "success");
+                    return;
                 }
+
+                // Telegram in-app or desktop – use direct download
+                forceDownload();
+                setStatus("Zip papka yuklanishi boshlandi. Telefon/kompyuteringizda yuklangan fayl odatda 'Downloads' / 'Yuklamalar' papkasiga saqlanadi. Yordamim tekgan bo'lsa 10 ball kutaman)", "success");
             } catch (error) {
                 console.error(error);
                 setStatus("Xatolik yuz berdi, qayta urinib ko'ring", "error");
